@@ -135,17 +135,17 @@ function renderList() {
 
   document.getElementById("rows").innerHTML = slice.map((e) => `
     <tr>
-      <td>
+      <td data-label="Employee">
         <div class="person">
           <div class="dot" style="background:${colorOf(e.id)}">${initials(e.name)}</div>
           <div>${e.name}<small>${e.email}</small></div>
         </div>
       </td>
-      <td>${e.number}</td>
-      <td><span class="chip">${e.dept}</span></td>
-      <td>${fmtDate(e.dob)}</td>
-      <td>${genderLabel(e.gender)}</td>
-      <td>
+      <td data-label="Staff ID">${e.number}</td>
+      <td data-label="Department"><span class="chip">${e.dept}</span></td>
+      <td data-label="Date of birth">${fmtDate(e.dob)}</td>
+      <td data-label="Gender">${genderLabel(e.gender)}</td>
+      <td data-label="">
         <div class="acts">
           <button class="btn tiny" data-act="view" data-id="${e.id}">View</button>
           <button class="btn tiny" data-act="edit" data-id="${e.id}">Edit</button>
