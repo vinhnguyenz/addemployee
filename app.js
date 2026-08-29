@@ -170,9 +170,6 @@ function openForm(emp) {
   state.editingId = emp ? emp.id : null;
   document.getElementById("form-eyebrow").textContent = emp ? "Update" : "Onboarding";
   document.getElementById("form-title").textContent = emp ? "Edit profile" : "Add a new employee";
-  document.getElementById("form-lede").textContent = emp
-    ? "Update the details. Changes take effect as soon as you save."
-    : "Fill in the basics. Data stays on this device (localStorage) — no SQL required.";
   document.getElementById("form-submit").textContent = emp ? "Update" : "Save profile";
   document.getElementById("form-err").hidden = true;
   const map = {
