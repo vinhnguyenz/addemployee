@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FIT People — Employee Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true"><span>F</span></div>
+        <div>
+          <strong>FIT People</strong>
+          <small>Faculty of Information Technology</small>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="#" class="is-active" data-nav="list">People</a>
+        <a href="#" data-nav="add">Hire</a>
+        <a href="#" data-nav="stats">Overview</a>
+      </nav>
+      <div class="who">
+        <div class="who-text">
+          <b>Vinh Nguyenz</b>
+          <span>HR Admin</span>
+        </div>
+        <div class="avatar">V</div>
+      </div>
+    </header>
+
+    <main class="stage">
+      <section id="view-list" class="view is-on">
+        <div class="hero">
+          <div>
+            <p class="eyebrow">Directory</p>
+            <h1>Employee records</h1>
+            <p class="lede">Internal directory — search, view, edit, and remove profiles right in the browser.</p>
+          </div>
+          <button class="btn primary" id="btn-goto-add">+ New profile</button>
+        </div>
+
+        <div class="kpis" id="kpis"></div>
+
+        <div class="toolbar">
+          <div class="search">
+            <input id="q" type="search" placeholder="Search by ID, name, or email…" autocomplete="off" />
+          </div>
+          <div class="filters">
+            <select id="filter-gender">
+              <option value="">All genders</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+            <select id="filter-dept">
+              <option value="">All departments</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="sheet">
+          <table class="grid">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Staff ID</th>
+                <th>Department</th>
+                <th>Date of birth</th>
+                <th>Gender</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+          <div class="empty" id="empty" hidden>No matching profiles found.</div>
+          <div class="pager" id="pager"></div>
+        </div>
+      </section>
+
+      <section id="view-profile" class="view">
+        <button class="back" data-nav="list">← Back to directory</button>
+        <div id="profile-box"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="overlay" id="overlay-form" hidden>
+    <div class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="form-title">
+      <button class="modal-close" data-close="form" aria-label="Close">×</button>
+      <div class="form-wrap">
+        <div class="form-intro">
+          <p class="eyebrow" id="form-eyebrow">Onboarding</p>
+          <h1 id="form-title">Add a new employee</h1>
+          <p class="lede" id="form-lede">Fill in the basics.</p>
+          <ul class="hints">
+            <li>Staff ID should be unique, e.g. 2401240109</li>
+            <li>Email is used for internal contact</li>
+            <li>You can edit the profile again at any time</li>
+          </ul>
+        </div>
+        <form id="emp-form" class="card-form" novalidate>
+          <input type="hidden" id="f-id" />
+          <div class="pair">
+            <label>Staff ID *
+              <input id="f-number" required maxlength="20" placeholder="2401240109" />
+            </label>
+            <label>Full name *
+              <input id="f-name" required maxlength="80" placeholder="Nguyen Van A" />
+            </label>
+          </div>
+          <div class="pair">
+            <label>Email *
+              <input id="f-email" type="email" required placeholder="id@ms.hanu.edu.vn" />
+            </label>
+            <label>Phone
+              <input id="f-phone" placeholder="+84 901 234 567" />
+            </label>
+          </div>
+          <div class="pair">
+            <label>Date of birth *
+              <input id="f-dob" type="date" required />
+            </label>
+            <label>Gender *
+              <select id="f-gender" required>
+                <option value="">Select…</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+          </div>
+          <div class="pair">
+            <label>Department *
+              <select id="f-dept" required>
+                <option value="">Select…</option>
+                <option>Software Engineering</option>
+                <option>Data & AI</option>
+                <option>Cybersecurity</option>
+                <option>Human Resources</option>
+                <option>Academic Affairs</option>
+              </select>
+            </label>
+            <label>Job title *
+              <input id="f-title" required placeholder="Lecturer / Engineer" />
+            </label>
+          </div>
+          <label>Address
+            <input id="f-address" placeholder="Your Address" />
+          </label>
+          <label>Notes
+            <textarea id="f-note" rows="3" placeholder="Contract, mentor, internal notes…"></textarea>
+          </label>
+          <p class="form-err" id="form-err" hidden></p>
+          <div class="form-actions">
+            <button type="button" class="btn ghost" data-close="form">Cancel</button>
+            <button type="submit" class="btn primary" id="form-submit">Save profile</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay-stats" hidden>
+    <div class="modal modal-xl" role="dialog" aria-modal="true">
+      <button class="modal-close" data-close="stats" aria-label="Close">×</button>
+      <p class="eyebrow">Overview</p>
+      <h1>People overview</h1>
+      <p class="lede">Figures are calculated from the data stored in this browser.</p>
+      <div class="kpis" id="stats-kpis"></div>
+      <div class="dept-list" id="dept-list"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3>Delete this profile?</h3>
+      <p id="del-text">This action cannot be undone.</p>
+      <div class="form-actions">
+        <button class="btn ghost" id="del-cancel">Keep it</button>
+        <button class="btn danger" id="del-ok">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
