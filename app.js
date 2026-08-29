@@ -1,6 +1,9 @@
-const KEY = "fit-people-v1";
+const KEY = "employee-management-v1";
+const API = "api.php";
 const PAGE_SIZE = 6;
 const COLORS = ["#1f4a3a", "#c45c26", "#3d5a80", "#7a4e2d", "#2f6f4e", "#8a3d4a"];
+let useApi = false;
+let cache = [];
 
 const seed = [
   { id: "1", number: "2401240109", name: "Nguyen Van Vinh", email: "2401240109@ms.hanu.edu.vn", phone: "0849009629", dob: "2006-01-14", gender: "Male", dept: "Software Engineering", title: "HR Admin", address: "Nam Dinh", note: "Account owner" },
@@ -14,7 +17,7 @@ const seed = [
 
 const state = { page: 1, pendingDelete: null, editingId: null };
 
-function load() {
+function loadLocal() {
   const raw = localStorage.getItem(KEY);
   if (!raw) {
     localStorage.setItem(KEY, JSON.stringify(seed));
@@ -22,7 +25,33 @@ function load() {
   }
   try { return JSON.parse(raw); } catch { return seed.map((x) => ({ ...x })); }
 }
-function save(list) { localStorage.setItem(KEY, JSON.stringify(list)); }
+function saveLocal(list) { localStorage.setItem(KEY, JSON.stringify(list)); }
+function load() { return cache.map((x) => ({ ...x })); }
+function save(list) {
+  cache = list.map((x) => ({ ...x }));
+  if (!useApi) saveLocal(cache);
+}
+async function api(method, payload, query = "") {
+  const res = await fetch(API + query, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: payload ? JSON.stringify(payload) : undefined
+  });
+  const json = await res.json().catch(() => ({ ok: false, error: "Invalid server response" }));
+  if (!json.ok) throw new Error(json.error || "Request failed");
+  return json;
+}
+async function refresh() {
+  try {
+    const json = await api("GET");
+    useApi = true;
+    cache = (json.data || []).map((row) => ({ ...row, id: String(row.id) }));
+  } catch (err) {
+    useApi = false;
+    cache = loadLocal();
+    console.warn("API offline, using localStorage:", err.message);
+  }
+}
 function initials(name) {
   return name.split(" ").filter(Boolean).slice(-2).map((w) => w[0]).join("").toUpperCase();
 }
@@ -170,6 +199,9 @@ function openForm(emp) {
   state.editingId = emp ? emp.id : null;
   document.getElementById("form-eyebrow").textContent = emp ? "Update" : "Onboarding";
   document.getElementById("form-title").textContent = emp ? "Edit profile" : "Add a new employee";
+  document.getElementById("form-lede").textContent = emp
+    ? "Update the details. Changes take effect as soon as you save."
+    : "Fill in the basics. Data stays on this device (localStorage) — no SQL required.";
   document.getElementById("form-submit").textContent = emp ? "Update" : "Save profile";
   document.getElementById("form-err").hidden = true;
   const map = {
@@ -252,19 +284,26 @@ document.getElementById("del-cancel").onclick = () => {
   state.pendingDelete = null;
   closeModal("del");
 };
-document.getElementById("del-ok").onclick = () => {
+document.getElementById("del-ok").onclick = async () => {
   if (!state.pendingDelete) return;
-  save(load().filter((e) => e.id !== state.pendingDelete));
-  state.pendingDelete = null;
-  closeModal("del");
-  show("list");
+  const id = state.pendingDelete;
+  try {
+    if (useApi) await api("DELETE", null, "?id=" + encodeURIComponent(id));
+    save(load().filter((e) => e.id !== id));
+    if (useApi) await refresh();
+    state.pendingDelete = null;
+    closeModal("del");
+    show("list");
+  } catch (e) {
+    document.getElementById("del-text").textContent = e.message;
+  }
 };
 
-document.getElementById("emp-form").onsubmit = (ev) => {
+document.getElementById("emp-form").onsubmit = async (ev) => {
   ev.preventDefault();
   const list = load();
   const rec = {
-    id: document.getElementById("f-id").value || String(Date.now()),
+    id: document.getElementById("f-id").value,
     number: document.getElementById("f-number").value.trim(),
     name: document.getElementById("f-name").value.trim(),
     email: document.getElementById("f-email").value.trim(),
@@ -287,11 +326,27 @@ document.getElementById("emp-form").onsubmit = (ev) => {
     err.hidden = false;
     return;
   }
-  const idx = list.findIndex((e) => e.id === rec.id);
-  if (idx >= 0) list[idx] = rec; else list.unshift(rec);
-  save(list);
-  closeModal("form");
-  renderProfile(rec.id);
+  try {
+    if (useApi) {
+      if (rec.id) {
+        await api("PUT", rec);
+      } else {
+        const created = await api("POST", rec);
+        rec.id = String(created.id);
+      }
+      await refresh();
+    } else {
+      if (!rec.id) rec.id = String(Date.now());
+      const idx = list.findIndex((e) => e.id === rec.id);
+      if (idx >= 0) list[idx] = rec; else list.unshift(rec);
+      save(list);
+    }
+    closeModal("form");
+    renderProfile(rec.id);
+  } catch (e) {
+    err.textContent = e.message;
+    err.hidden = false;
+  }
 };
 
 document.getElementById("btn-goto-add").onclick = () => openForm(null);
@@ -342,4 +397,4 @@ document.addEventListener("keydown", (e) => {
   if (!document.getElementById("overlay-stats").hidden) closeModal("stats");
 });
 
-renderList();
+refresh().then(renderList);
