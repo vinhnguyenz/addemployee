@@ -1,4 +1,4 @@
-const KEY = "employee-management-v1";
+const KEY = "fit-people-v1";
 const PAGE_SIZE = 6;
 const COLORS = ["#1f4a3a", "#c45c26", "#3d5a80", "#7a4e2d", "#2f6f4e", "#8a3d4a"];
 
@@ -170,8 +170,6 @@ function openForm(emp) {
   state.editingId = emp ? emp.id : null;
   document.getElementById("form-eyebrow").textContent = emp ? "Update" : "Onboarding";
   document.getElementById("form-title").textContent = emp ? "Edit profile" : "Add a new employee";
-  document.getElementById("form-lede").textContent = emp
-    ? "Update the details. Changes take effect as soon as you save."
   document.getElementById("form-submit").textContent = emp ? "Update" : "Save profile";
   document.getElementById("form-err").hidden = true;
   const map = {
